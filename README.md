@@ -70,6 +70,7 @@ The agent orchestrates skills based on user intent. Each skill is a structured p
 │   ├── jira-ticket-update/      # Field updates, date cascade, status sync
 │   ├── jira-ticket-comment/     # @mention comments & notifications
 │   └── jira-ticket-intake/      # PRD/document → ticket parsing
+├── n8n-workflows/               # n8n workflow JSON exports (import to set up MCP server)
 ├── design-artifacts/            # Skill specs and role designs
 ├── docs/                        # User-facing guide
 └── n8n-snippets/                # JS transforms for n8n workflow nodes
@@ -77,22 +78,74 @@ The agent orchestrates skills based on user intent. Each skill is a structured p
 
 ## MCP Setup
 
-This agent requires an MCP server (`ms_jira_mcp`) with the following tools:
+This agent connects to JIRA through an MCP server built with [n8n](https://n8n.io/) workflows. The `n8n-workflows/` folder contains all the workflow JSON files you need.
 
-| MCP Tool | Purpose |
-|----------|---------|
-| `Create_Epic` | Create epics (8 params: title, description, original_estimate, assignee_id, labels, status, start_date, due_date) |
-| `Create_Stories` | Create stories under an epic (9 params: + epic_key) |
-| `Create_Subtasks` | Create subtasks under a story (9 params: + story_key) |
-| `Get_Epic` | Retrieve epics by status label (on-track, not-started, done) |
-| `Get_Stories` | Retrieve stories under an epic |
-| `Get_Subtasks` | Retrieve subtasks under a story |
-| `Update_Any_Issue_Type` | Update any ticket's fields (9 params: issue_key, title, description, original_estimate, assignee_id, labels, status, start_date, due_date) |
-| `Add_Comment_to_Issue` | Add a comment with @mention to a ticket |
+### Step 1: Import workflows into n8n
+
+Import these files into your n8n instance (in order):
+
+| # | File | What it does |
+|---|------|-------------|
+| — | `JIRA MCP Server.json` | **Main workflow** — the MCP server entry point that routes requests to sub-workflows |
+| 1 | `1. Get Jira Epic.json` | Query epics by status label (on-track, not-started, done) |
+| 2 | `2. Get Jira Stories.json` | Query stories under an epic |
+| 3 | `3. Get Jira Subtasks.json` | Query subtasks under a story |
+| 4 | `4. Create Jira Epic.json` | Create an epic with all fields |
+| 5 | `5. Create Jira Stories.json` | Create a story under an epic |
+| 6 | `6. Create Jira Subtasks.json` | Create a subtask under a story |
+| 7 | `7. Update Any Issue Type.json` | Update any ticket's fields (including status transitions) |
+| 8 | `8. Add Comment to Issue.json` | Add a comment with @mention to a ticket |
+
+### Step 2: Configure JIRA credentials
+
+In n8n, set up a **JIRA Cloud** credential with:
+- Your JIRA instance URL (e.g., `https://yourteam.atlassian.net`)
+- An API token ([generate one here](https://id.atlassian.com/manage-profile/security/api-tokens))
+- Your JIRA email address
+
+Then connect the credential to all JIRA nodes in the imported workflows.
+
+### Step 3: Update project key
+
+The workflows default to project key `AT`. If your JIRA project uses a different key, update it in the Create Epic/Stories/Subtasks workflows.
+
+### Step 4: Activate the MCP server workflow
+
+Activate `JIRA MCP Server.json` in n8n. This exposes a webhook URL that Claude Code connects to.
+
+### Step 5: Configure Claude Code
+
+Add the MCP server to your Claude Code settings (`.claude/settings.json` or project settings):
+
+```json
+{
+  "mcpServers": {
+    "ms_jira_mcp": {
+      "type": "url",
+      "url": "https://your-n8n-instance.com/webhook/jira-mcp"
+    }
+  }
+}
+```
+
+Replace the URL with your actual n8n webhook URL from the activated MCP server workflow.
+
+### MCP Tools Reference
+
+| MCP Tool | Purpose | Parameters |
+|----------|---------|------------|
+| `Create_Epic` | Create epics | title, description, original_estimate, assignee_id, labels, status, start_date, due_date |
+| `Create_Stories` | Create stories under an epic | + epic_key |
+| `Create_Subtasks` | Create subtasks under a story | + story_key |
+| `Get_Epic` | Query epics | initiative_status (on-track, not-started, done) |
+| `Get_Stories` | Query stories | initiative_key |
+| `Get_Subtasks` | Query subtasks | story_key |
+| `Update_Any_Issue_Type` | Update any ticket | issue_key, title, description, original_estimate, assignee_id, labels, status, start_date, due_date |
+| `Add_Comment_to_Issue` | Comment on a ticket | issue_key, comment, mention_id |
 
 All parameters are **required** for create and update tools — pass empty string `""` for fields not being set.
 
-### JIRA Field Mapping (n8n)
+### JIRA Field Mapping
 
 | Agent Field | JIRA REST API Field |
 |-------------|-------------------|
