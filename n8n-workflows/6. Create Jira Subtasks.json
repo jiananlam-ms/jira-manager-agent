@@ -1,0 +1,164 @@
+{
+  "name": "6. Create Jira Subtasks",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "title"
+            },
+            {
+              "name": "description"
+            },
+            {
+              "name": "story_key"
+            },
+            {
+              "name": "original_estimate"
+            },
+            {
+              "name": "assignee_id"
+            },
+            {
+              "name": "labels"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "start_date"
+            },
+            {
+              "name": "due_date"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "c589c4c1-530c-4e79-8a11-03251222308f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        128,
+        0
+      ],
+      "id": "9ca488c1-7593-4e7b-93f3-f960e9c2d9f5",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://moneysmart.atlassian.net/rest/api/3/issue",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (function() {                             \n    const fields = {                                  \n      project: { key: \"AT\" },                          \n      issuetype: { name: \"Sub-task\" },\n      summary: $json.title,                    \n      description: {                           \n        type: \"doc\",                           \n        version: 1,                            \n        content: [{ type: \"paragraph\", content: [{ type: \"text\", text: $json.description }] }]\n      },\n      parent: { key: $json.story_key },\n      timetracking: { originalEstimate: $json.original_estimate },\n      assignee: { accountId: $json.assignee_id }\n    };\n    if ($json.labels) { try { fields.labels = JSON.parse($json.labels); } catch(e) { fields.labels = [$json.labels]; } } else { fields.labels = [\"not-started\"]; }\n    if ($json.start_date) fields.customfield_10015 = $json.start_date;\n    if ($json.due_date) fields.duedate = $json.due_date;\n    return JSON.stringify({ fields });\n  })() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        368,
+        16
+      ],
+      "id": "85a8c48a-3d68-414d-994a-ce156d01cc91",
+      "name": "Create Subtasks",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "E5oT7SmDiMCaK5ly",
+          "name": "Jian An JIRA"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "title": "Build dashboard UI",
+          "description": "Create the frontend dashboard with charts and filters for the defined metrics",
+          "story_key": "AT-390",
+          "original_estimate": "10h",
+          "assignee_id": "712020:7e204e9c-8c07-4615-8930-142f6a198535"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Create Subtasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Subtasks": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "55637d7f-6acf-4d99-b95f-0923cf7b77bf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14df616ca124cf32c43693e6b4cc27d6dbf6b0baaa25603423e96330dcf747f5"
+  },
+  "id": "gDeDXojjfG7lhGXv",
+  "tags": []
+}

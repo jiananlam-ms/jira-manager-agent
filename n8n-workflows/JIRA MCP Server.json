@@ -1,0 +1,888 @@
+{
+  "name": "JIRA MCP Server",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "jira-mcp"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -176
+      ],
+      "id": "2ffd9b4d-cf19-4def-bc05-137a9becf6aa",
+      "name": "MCP Server Trigger",
+      "webhookId": "41774882-0da7-458d-905c-6138b095f9cd"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to get the list of stories associated with a specific AI Team initiative.",
+        "workflowId": {
+          "__rl": true,
+          "value": "8hRzdM1uL6GdNInT-HaIG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8hRzdM1uL6GdNInT-HaIG",
+          "cachedResultName": "2. Get Jira Stories"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "initiative_key": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('initiative_key', `initiative_key from the initiative tool`, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "initiative_key",
+              "displayName": "initiative_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        64
+      ],
+      "id": "6fff5f91-784c-47c9-9240-e4f40503496b",
+      "name": "Get Stories"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to get the list of subtasks associated with a specific AI Team story.",
+        "workflowId": {
+          "__rl": true,
+          "value": "35DP7Od2dsM62nCouzPv3",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/35DP7Od2dsM62nCouzPv3",
+          "cachedResultName": "3. Get Jira Subtasks"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "story_key": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('story_key', `story_key from the story tool`, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "story_key",
+              "displayName": "story_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -144,
+        64
+      ],
+      "id": "63fd159e-be02-4561-ad26-03f4b8df6fff",
+      "name": "Get Subtasks"
+    },
+    {
+      "parameters": {
+        "content": "## Get",
+        "height": 224,
+        "width": 512
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        -16
+      ],
+      "typeVersion": 1,
+      "id": "879a497f-7645-4d44-afcc-52f388cfbbc0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Create",
+        "height": 224,
+        "width": 512
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        176,
+        -16
+      ],
+      "typeVersion": 1,
+      "id": "ab5509b6-0014-4b11-aa4d-e147f3a0e9f1",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to create a new JIRA epic based on the input and requirement.",
+        "workflowId": {
+          "__rl": true,
+          "value": "ortFLwpj_WcQSAlbvTUDQ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ortFLwpj_WcQSAlbvTUDQ",
+          "cachedResultName": "4. Create Jira Epic"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('title', `the title of the epic created`, 'string') }}",
+            "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('description', `the description of the epic created`, 'string') }}",
+            "original_estimate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('original_estimate', `the time estimate for this epic (all the stories time estimate added)`, 'string') }}",
+            "assignee_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('assignee_id', `the person assigned for this epic`, 'string') }}",
+            "labels": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('labels', `either on-track/on-hold/not-started/done`, 'string') }}",
+            "status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('status', `either building/shaping/backlog/completed/ready for review/refining/launched`, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', `start date of the issue`, 'string') }}",
+            "due_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('due_date', `due date of the issue`, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "original_estimate",
+              "displayName": "original_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "assignee_id",
+              "displayName": "assignee_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        64
+      ],
+      "id": "bd2fc183-dedf-4f96-aa1b-6df245498804",
+      "name": "Create Epic"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to create the list of stories associated with the epic ticket created.",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4Hwn6ZTLGfNO9qp",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/a4Hwn6ZTLGfNO9qp",
+          "cachedResultName": "5. Create Jira Stories"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('title', `the title of the story created`, 'string') }}",
+            "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('description', `the description of the story created`, 'string') }}",
+            "epic_key": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('epic_key', `the parent key from the epic created`, 'string') }}",
+            "original_estimate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('original_estimate', `the time estimate for this epic (all the subtasks time estimate added)`, 'string') }}",
+            "assignee_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('assignee_id', `the person assigned for the given story`, 'string') }}",
+            "labels": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('labels', `either on-track/on-hold/not-started/done`, 'string') }}",
+            "status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('status', `either building/shaping/backlog/completed/ready for review/refining/launched`, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', `start date of the issue`, 'string') }}",
+            "due_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('due_date', `due date of the issue`, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "epic_key",
+              "displayName": "epic_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "original_estimate",
+              "displayName": "original_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "assignee_id",
+              "displayName": "assignee_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        64
+      ],
+      "id": "0094bb0f-68c8-4bc9-81fd-79a31e4ca63c",
+      "name": "Create Stories"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to create the list of subtasks associated with the list of stories created.",
+        "workflowId": {
+          "__rl": true,
+          "value": "gDeDXojjfG7lhGXv",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/gDeDXojjfG7lhGXv",
+          "cachedResultName": "6. Create Jira Subtasks"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('title', `the title of the subtask created`, 'string') }}",
+            "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('description', `the description of the subtask created`, 'string') }}",
+            "story_key": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('story_key', `the parent key from the epic created`, 'string') }}",
+            "original_estimate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('original_estimate', `the time estimate for this subtask`, 'string') }}",
+            "assignee_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('assignee_id', `the person assigned for the given subtask`, 'string') }}",
+            "labels": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('labels', `either on-track/on-hold/not-started/done`, 'string') }}",
+            "status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('status', `either building/shaping/backlog/completed/ready for review/refining/launched`, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', `start date of the issue`, 'string') }}",
+            "due_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('due_date', `due date of the issue`, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "story_key",
+              "displayName": "story_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "original_estimate",
+              "displayName": "original_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "assignee_id",
+              "displayName": "assignee_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        64
+      ],
+      "id": "5bec6c06-13a0-4148-93b7-50d5707a353f",
+      "name": "Create Subtasks"
+    },
+    {
+      "parameters": {
+        "content": "## Update\n",
+        "height": 240,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        368,
+        -368
+      ],
+      "typeVersion": 1,
+      "id": "030bd680-77e6-4602-a110-9abfbd588231",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to create a new JIRA epic based on the input and requirement.",
+        "workflowId": {
+          "__rl": true,
+          "value": "crfKf8fpJcjmbwKS",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/crfKf8fpJcjmbwKS",
+          "cachedResultName": "7. Update Any Issue Type"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('title', `the title of the epic created`, 'string') }}",
+            "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('description', `the description of the epic created`, 'string') }}",
+            "original_estimate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('original_estimate', `the time estimate for this epic (all the stories time estimate added)`, 'string') }}",
+            "assignee_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('assignee_id', `the person assigned for this epic`, 'string') }}",
+            "issue_key": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('issue_key', `the issue key for epic/story/subtask that needs to be updated`, 'string') }}",
+            "labels": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('labels', `either on-track/on-hold/not-started/done`, 'string') }}",
+            "status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('status', `either building/shaping/backlog/completed/ready for review/refining/launched`, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', `start date of the issue`, 'string') }}",
+            "due_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('due_date', `due date of the issue`, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "issue_key",
+              "displayName": "issue_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "original_estimate",
+              "displayName": "original_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "assignee_id",
+              "displayName": "assignee_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        -272
+      ],
+      "id": "505f9abc-280d-4da2-a102-1880e0d77aef",
+      "name": "Update Any Issue Type"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to get the list of the AI Team's initiatives based on the specified status.",
+        "workflowId": {
+          "__rl": true,
+          "value": "SoV_j-G6TgN-qHAgcs4g4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/SoV_j-G6TgN-qHAgcs4g4",
+          "cachedResultName": "1. Get Jira Epic"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "initiative_status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('initiative_status', `one of 'on-track', 'not-started', 'on-hold', 'done'.                                                                           `, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "initiative_status",
+              "displayName": "initiative_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        64
+      ],
+      "id": "625de293-34b6-43c6-af1e-7a7896c52094",
+      "name": "Get Epic"
+    },
+    {
+      "parameters": {
+        "content": "## Comment\n",
+        "height": 240,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -352,
+        -352
+      ],
+      "typeVersion": 1,
+      "id": "ad2a7bc6-7c75-4b76-b513-8355b69bde86",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to create a new JIRA epic based on the input and requirement.",
+        "workflowId": {
+          "__rl": true,
+          "value": "E6LRTwuZ8tNjKzEn",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/E6LRTwuZ8tNjKzEn",
+          "cachedResultName": "8. Add Comment to Issue"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "issue_key": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('issue_key', `the issue key for the ticket to comment on`, 'string') }}",
+            "comment": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('comment', `the comment text to add to the ticket.`, 'string') }}",
+            "mention_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('mention_id', `the account ID of the person to mention`, 'string') }}"
+          },
+          "matchingColumns": [
+            "issue_key"
+          ],
+          "schema": [
+            {
+              "id": "issue_key",
+              "displayName": "issue_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "comment",
+              "displayName": "comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "mention_id",
+              "displayName": "mention_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        -272
+      ],
+      "id": "af510a1e-5b7b-4cb8-a76a-1a8deca450b2",
+      "name": "Add Comment to Issue"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Stories": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Subtasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Epic": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Stories": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Subtasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Any Issue Type": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Epic": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Comment to Issue": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "287ac009-f047-4d8f-bd49-236387d9709f",
+  "meta": {
+    "instanceId": "14df616ca124cf32c43693e6b4cc27d6dbf6b0baaa25603423e96330dcf747f5"
+  },
+  "id": "3HmBBkVeDlEM_5EKqdiZE",
+  "tags": []
+}

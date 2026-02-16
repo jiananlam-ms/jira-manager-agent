@@ -1,0 +1,280 @@
+{
+  "name": "1. Get Jira Epic",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {
+          "fields": "issuetype,summary,key",
+          "fieldsByKey": false,
+          "jql": "project = 10256 AND issuetype = 10000"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        448
+      ],
+      "id": "363d06a4-f038-42b1-ae89-f2db02fa4f79",
+      "name": "List All Initiatives",
+      "notesInFlow": true,
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "E5oT7SmDiMCaK5ly",
+          "name": "Jian An JIRA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "={{ $json.key }}",
+        "additionalFields": {
+          "expand": "changelog,transitions",
+          "fields": "project,issuetype,summary,key,created,customfield_10015,duedate,customfield_10267,customfield_10468,customfield_10391,customfield_10392,customfield_10271,status,comment,labels,assignee,timetracking"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        448
+      ],
+      "id": "34a25fbd-551c-4d60-9df4-dbb7a9a97379",
+      "name": "Get Initiative Details",
+      "notesInFlow": true,
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "E5oT7SmDiMCaK5ly",
+          "name": "Jian An JIRA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// === Configuration ===\nconst DEFAULT_MODE = 'full';\n\n// Jira Custom Field IDs (Replace with your actual IDs if different)\nconst START_DATE_FIELD_ID = 'customfield_10015';\n\n// === STEP 1: Get the selected mode from input ===\nconst mode = $json.mode ?? DEFAULT_MODE;\n\n// === STEP 2: Define all possible fields and their transformation logic ===\nconst fieldDefinitions = [\n  // Basic Info\n  { key: 'key', label: 'Key', path: 'key' },\n  { key: 'title', label: 'Title', path: 'fields.summary' },\n  { key: 'squad', label: 'Squad', path: 'fields.project.name' },\n  { key: 'issuetype', label: 'Type of Issue', path: 'fields.issuetype.name' },\n  { key: 'labels', label: 'Labels', path: 'fields.labels' },\n\n  // Dates (Raw ISO)\n  { key: 'created_date', label: 'Created Date', path: 'fields.created', format: 'iso' },\n  { key: 'start_date', label: 'Start Date', path: `fields.${START_DATE_FIELD_ID}`, format: 'iso' },\n  { key: 'end_date', label: 'End date', path: 'fields.duedate', format: 'iso' },\n\n  // Dates (Formatted DD-MMM-YYYY)\n  { key: 'created_date_formatted', label: 'Created Date (Formatted)', path: 'fields.created', format: 'dd-mmm-yyyy' },\n  { key: 'start_date_formatted', label: 'Start Date (Formatted)', path: `fields.${START_DATE_FIELD_ID}`, format: 'dd-mmm-yyyy' },\n  { key: 'end_date_formatted', label: 'End date (Formatted)', path: 'fields.duedate', format: 'dd-mmm-yyyy' },\n\n  // Dates (Relative)\n  { key: 'created_date_relative', label: 'Created Date (Relative)', path: 'fields.created', format: 'relative' },\n  { key: 'start_date_relative', label: 'Start Date (Relative)', path: `fields.${START_DATE_FIELD_ID}`, format: 'relative' },\n  { key: 'end_date_relative', label: 'End Date (Relative)', path: 'fields.duedate', format: 'relative' },\n\n  // Statuses\n  { key: 'overall_status', label: 'Overall Status', path: 'fields.status.name' },\n\n  // Custom Derived Fields\n  { key: 'last_update_1', label: 'Last Update 1', custom: 'last_update', index: 0 },\n  { key: 'last_update_2', label: 'Last Update 2', custom: 'last_update', index: 1 },\n  { key: 'last_comment_1', label: 'Last Comment 1', custom: 'last_comment', index: 0 },\n  { key: 'last_comment_2', label: 'Last Comment 2', custom: 'last_comment', index: 1 },\n  { key: 'available_transitions', label: 'Available Transitions', custom: 'transitions' },\n];\n\n// === STEP 3: Define which field keys to include for each mode ===\nconst fieldKeysByMode = {\n  full: [\n    'key', 'title', 'squad', 'issuetype', 'labels',\n    'created_date', 'created_date_relative',\n    'start_date', 'start_date_relative',\n    'end_date', 'end_date_relative',\n    'overall_status',\n    'available_transitions', 'last_update_1', 'last_update_2',\n    'last_comment_1', 'last_comment_2',\n  ],\n  compact: [\n    'key', 'title', 'squad', 'labels',\n    'start_date', 'start_date_formatted', 'start_date_relative',\n    'end_date', 'end_date_relative',\n    'overall_status',\n    'available_transitions', 'last_update_1', 'last_update_2',\n    'last_comment_1', 'last_comment_2',\n  ],\n  metrics: [\n    'key', 'labels',\n    'overall_status',\n    'start_date_relative', 'end_date_relative', // important for understanding target dates\n    'available_transitions', 'last_update_1', 'last_update_2',\n    'last_comment_1', 'last_comment_2',\n  ],\n};\n\n// === STEP 4: Utility Functions ===\n\n/**\n * Safely access nested properties of an object using a dot-notation path.\n * @param {object} obj - The object to traverse.\n * @param {string} path - The dot-notation path (e.g., 'fields.summary').\n * @returns {*} The value at the path, or null if not found or invalid.\n */\nfunction getNestedValue(obj, path) {\n  // Return null instead of \"N/A\" for better downstream processing\n  return path.split('.').reduce((acc, part) => acc?.[part], obj) ?? null;\n}\n\n/**\n * Normalizes Jira date strings to ensure they are ISO 8601 compliant with a colon in the timezone offset.\n * Converts '2024-12-10T14:41:39.883+0800' to '2024-12-10T14:41:39.883+08:00'.\n * @param {string} dateStr - The date string to normalize.\n * @returns {string} The normalized date string.\n */\nfunction normalizeDateString(dateStr) {\n  if (!dateStr || typeof dateStr !== 'string') return dateStr;\n  // Regex to add colon in timezone offset like +0800 -> +08:00\n  return dateStr.replace(/([+-]\\d{2})(\\d{2})$/, '$1:$2');\n}\n\n/**\n * Formats a date string into various formats (ISO, dd-mmm-yyyy, relative).\n * @param {string} dateStr - The date string to format (should be ISO 8601 compatible).\n * @param {'iso' | 'dd-mmm-yyyy' | 'relative'} formatType - The desired format.\n * @returns {string | null} The formatted date string, or null if the input is invalid or missing.\n */\nfunction formatDate(dateStr, formatType) {\n  // Return null if input is falsy (null, undefined, \"\")\n  if (!dateStr) return null;\n\n  // Normalize before creating Date object for better compatibility\n  const normalizedDateStr = normalizeDateString(dateStr);\n  const dateObj = new Date(normalizedDateStr);\n\n  // Check if the date object is valid\n  if (isNaN(dateObj.getTime())) {\n    // Log error but return null for invalid dates\n    console.error(`Invalid date detected: ${dateStr} (Normalized: ${normalizedDateStr})`);\n    return null;\n  }\n\n  switch (formatType) {\n    case 'iso':\n      return dateObj.toISOString().split('T')[0]; // YYYY-MM-DD\n\n    case 'dd-mmm-yyyy':\n      const day = String(dateObj.getDate()).padStart(2, '0');\n      const monthNames = [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"May\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Oct\", \"Nov\", \"Dec\"];\n      const month = monthNames[dateObj.getMonth()];\n      const year = dateObj.getFullYear();\n      return `${day}-${month}-${year}`;\n\n    case 'relative':\n      const today = new Date();\n      today.setHours(0, 0, 0, 0); // Normalize today to start of day\n      const compareDate = new Date(dateObj); // Use a copy\n      compareDate.setHours(0, 0, 0, 0); // Normalize comparison date to start of day\n\n      const msInDay = 1000 * 60 * 60 * 24;\n      const diffDays = Math.round((compareDate - today) / msInDay);\n\n      if (diffDays === 0) return \"today\";\n      if (diffDays === 1) return \"tomorrow\";\n      if (diffDays === -1) return \"yesterday\";\n\n      const absDays = Math.abs(diffDays);\n      const label = absDays === 1 ? \"day\" : \"days\";\n      return diffDays < 0 ? `${absDays} ${label} ago` : `in ${absDays} ${label}`;\n\n    default:\n      // Fallback to original string if formatType is unknown\n      return dateStr;\n  }\n}\n\n// === STEP 5: Custom Field Logic Helpers ===\n\n/**\n * Extracts and formats the available transitions for an issue.\n * @param {Array<object>} transitions - The transitions array from the issue.\n * @returns {string} Comma-separated list of transition names, or \"N/A\".\n */\nfunction getTransitionsValue(transitions) {\n  const validTransitions = transitions ?? [];\n  return validTransitions.length > 0\n    ? validTransitions.map(t => t.name).join(', ')\n    : \"N/A\";\n}\n\n/**\n * Extracts and formats a specific update from the sorted changelog history.\n * @param {Array<object>} sortedHistories - Changelog histories, pre-sorted descending by date.\n * @param {number} index - The index of the update to retrieve (0 for latest, 1 for second latest).\n * @returns {string} Formatted update string, or \"N/A\".\n */\nfunction getUpdateValue(sortedHistories, index) {\n  if (!sortedHistories || sortedHistories.length <= index) {\n    return \"N/A\";\n  }\n\n  const history = sortedHistories[index];\n  // Ensure there are items in the history entry\n  if (!history.items || history.items.length === 0) {\n      return \"N/A\"; // Or perhaps indicate an empty history item\n  }\n  const change = history.items[0]; // Assuming the first item is the most relevant\n\n  const date = formatDate(history.created, 'iso'); // Use shared formatDate\n  const fieldName = change?.field ?? 'unknown field';\n  const from = change?.fromString ?? 'N/A';\n  const to = change?.toString ?? 'N/A';\n\n  return `${date}: ${fieldName} changed from '${from}' → '${to}'`;\n}\n\n/**\n * Extracts and formats a specific comment from the comments list.\n * @param {Array<object>} comments - The comments array from the issue's fields.\n * @param {number} index - The index of the comment to retrieve (0 for latest, 1 for second latest).\n * @returns {string} Formatted comment string, or \"N/A\".\n */\nfunction getCommentValue(comments, index) {\n  const validComments = comments ?? [];\n  // Comments are usually ordered oldest to newest, so access from the end\n  const targetIndex = validComments.length - 1 - index;\n\n  if (targetIndex < 0 || validComments.length <= targetIndex) {\n    return \"N/A\";\n  }\n\n  const comment = validComments[targetIndex];\n  const date = formatDate(comment.created, 'dd-mmm-yyyy'); // Use shared formatDate\n  const author = comment.updateAuthor?.displayName || comment.author?.displayName || \"Unknown Author\";\n  // Clean up comment body: remove newlines, Jira user mentions like [~accountId:...]\n  const body = (comment.body ?? \"[No content]\")\n    .replace(/\\r\\n|\\r|\\n/g, ' ') // Replace various newline chars with space\n    .replace(/\\[~.*?\\]/g, '')    // Remove Jira user mentions\n    .replace(/\\s+/g, ' ')        // Collapse multiple spaces\n    .trim();\n\n  // Truncate long comments for brevity if needed\n  const maxLength = 150; // Example max length\n  const truncatedBody = body.length > maxLength ? body.substring(0, maxLength) + '...' : body;\n\n  return `${date} by ${author}: ${truncatedBody}`;\n}\n\n\n// === STEP 6: Core Transformation Logic ===\n\n/**\n * Transforms a single Jira issue object based on the selected mode and field definitions.\n * @param {object} issue - The raw Jira issue object (item.json).\n * @param {string} selectedMode - The mode ('full', 'compact', 'metrics').\n * @param {Array<object>} definitions - The field definitions array.\n * @param {object} keysByMode - The mapping of modes to included field keys.\n * @returns {object} The transformed issue object with labels as keys.\n */\nfunction transformIssue(issue, selectedMode, definitions, keysByMode) {\n  const result = {};\n  const includedKeys = keysByMode[selectedMode] ?? keysByMode[DEFAULT_MODE];\n\n  // Pre-process data needed for multiple custom fields (Optimization)\n  const comments = issue.fields?.comment?.comments ?? [];\n  const transitions = issue.transitions ?? [];\n  const sortedHistories = (issue.changelog?.histories ?? [])\n    .filter(h => h.items?.length > 0) // Ensure history item has changes\n    .sort((a, b) => new Date(normalizeDateString(b.created)) - new Date(normalizeDateString(a.created))); // Sort descending\n\n  // Iterate through all defined fields\n  for (const field of definitions) {\n    // Skip if the field is not included in the current mode\n    if (!includedKeys.includes(field.key)) continue;\n\n    let value = null; // Default value changed to null\n\n    try {\n        if (field.custom) {\n        // --- Custom Field Logic ---\n        switch (field.custom) {\n            case 'transitions':\n            value = getTransitionsValue(transitions);\n            break;\n            case 'last_update':\n            value = getUpdateValue(sortedHistories, field.index);\n            break;\n            case 'last_comment':\n            value = getCommentValue(comments, field.index);\n            break;\n            default:\n             console.warn(`Unknown custom field type: ${field.custom}`);\n             value = \"Error: Unknown custom type\";\n        }\n        } else {\n        // --- Standard Field Logic ---\n        const rawValue = getNestedValue(issue, field.path);\n\n        // Apply formatting if specified, otherwise use raw value\n        // Ensure rawValue is not null before attempting to format\n        if (field.format && rawValue !== null) {\n            value = formatDate(rawValue, field.format);\n        } else {\n            // Use raw value if no format or if rawValue was already null\n            value = rawValue;\n        }\n        }\n    } catch (error) {\n        console.error(`Error processing field '${field.label}' (key: ${field.key}):`, error);\n        value = `Error processing field: ${field.key}`; // Set error message in output\n    }\n\n\n    // Assign the determined value to the result object using the field's key (snake_case)\n    result[field.key] = value;\n  }\n\n  return result;\n}\n\n// === STEP 7: Apply transformation to each input item ===\n// Assumes 'items' is an array provided by the n8n environment,\n// where each element has a 'json' property containing the raw Jira issue data.\nconst output = items.map(item => {\n    if (!item.json) {\n        console.error(\"Input item missing 'json' property:\", item);\n        // Return a structured error or skip the item\n        return { json: { error: \"Input item missing 'json' property\" } };\n    }\n    try {\n        return {\n            json: transformIssue(item.json, mode, fieldDefinitions, fieldKeysByMode),\n        };\n    } catch (error) {\n        console.error(\"Error transforming issue:\", item.json?.key || 'Unknown Key', error);\n        // Return a structured error for this specific item\n        return { json: { error: `Failed to transform issue ${item.json?.key || ''}: ${error.message}` } };\n    }\n});\n\n\n// === STEP 8: Structure and Return the final output ===\n\n/**\n * Generates a timestamp string in ISO 8601 format for GMT+8 (Asia/Singapore).\n * Example: 2025-04-30T08:08:00+08:00\n * @returns {string} Formatted timestamp string.\n */\nfunction getTimestampGMT8() {\n  const now = new Date();\n  // A robust way using Intl API if available:\n  try {\n      const formatter = new Intl.DateTimeFormat('en-CA', { // 'en-CA' gives YYYY-MM-DD\n          year: 'numeric', month: '2-digit', day: '2-digit',\n          hour: '2-digit', minute: '2-digit', second: '2-digit',\n          hour12: false,\n          timeZone: 'Asia/Singapore' // Specify the target timezone\n      });\n      const parts = formatter.formatToParts(now);\n      const dateParts = {};\n      parts.forEach(({type, value}) => { dateParts[type] = value; });\n      // Reconstruct in ISO format with offset\n      return `${dateParts.year}-${dateParts.month}-${dateParts.day}T${dateParts.hour}:${dateParts.minute}:${dateParts.second}+08:00`;\n  } catch (e) {\n      // Fallback to basic ISO string if Intl fails (will be UTC 'Z')\n      console.warn(\"Intl.DateTimeFormat for timezone formatting failed, using default toISOString().\", e);\n      return now.toISOString();\n  }\n}\n\n\nconst finalResult = {\n  generation_timestamp: getTimestampGMT8(), // Use the new function\n  total_records: output.length,\n  // IMPORTANT: n8n expects the *final* return to be an array where each item has a 'json' property.\n  // To return metadata AND the items, we must return a single item array containing our structured result.\n  // The subsequent n8n nodes will then operate on the content of `items[0].json`.\n  Initiatives: output.map(item => item.json) // Extract the json object from each item\n};\n\n// Wrap the single result object in an array item with a 'json' key to satisfy n8n's expected output structure\n// when processing multiple items but wanting a single structured output.\nreturn [{ json: finalResult }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        448
+      ],
+      "id": "a86e7870-c472-4567-b3e5-33870dce8e71",
+      "name": "Transform Initiatives"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "initiative_status"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        448
+      ],
+      "id": "15a200c2-c4e5-4eba-ac33-d317d86e57b4",
+      "name": "List All Initiative"
+    },
+    {
+      "parameters": {
+        "jsCode": "  return items.map(item => {\n    // Pass the label value straight through (on-track, on-hold, not-started, done)\n    item.json.filter_label = item.json.initiative_status;\n    return item;\n  });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        448
+      ],
+      "id": "ccf8f9fb-4c46-4627-a628-f26e5e4c45b3",
+      "name": "Label Mapping"
+    },
+    {
+      "parameters": {
+        "content": "## Label Mapping",
+        "height": 240,
+        "width": 272,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -528,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "51897165-9842-4718-96b6-76f9f3b8f41b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Get Initiatives",
+        "height": 240,
+        "width": 368,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "d3b96b0b-f47c-4d5b-9f2f-8c66ea3470fc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Filter and Respond",
+        "height": 240,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        144,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "a262ae54-1b83-4ff3-a213-502e141dff1b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cde5cd96-e236-4915-8458-f09fd46c0a27",
+              "leftValue": "={{ $json.fields.labels }} ",
+              "rightValue": "={{ $('Label Mapping').item.json.filter_label }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        176,
+        448
+      ],
+      "id": "7caeea32-1a6e-4543-93d3-19e9429defde",
+      "name": "Filter By Label"
+    },
+    {
+      "parameters": {
+        "content": "## Jira Initiatives",
+        "height": 496,
+        "width": 1136,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -592,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "d11ef805-2be1-4733-8a75-fe53f0a2e522",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {
+    "List All Initiative": [
+      {
+        "json": {
+          "initiative_status": "on-track"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "List All Initiatives": {
+      "main": [
+        [
+          {
+            "node": "Get Initiative Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Initiative Details": {
+      "main": [
+        [
+          {
+            "node": "Filter By Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List All Initiative": {
+      "main": [
+        [
+          {
+            "node": "Label Mapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Mapping": {
+      "main": [
+        [
+          {
+            "node": "List All Initiatives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter By Label": {
+      "main": [
+        [
+          {
+            "node": "Transform Initiatives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "fe61bb36-a0b9-4cf6-af8f-3ceaf3097b6d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14df616ca124cf32c43693e6b4cc27d6dbf6b0baaa25603423e96330dcf747f5"
+  },
+  "id": "SoV_j-G6TgN-qHAgcs4g4",
+  "tags": []
+}

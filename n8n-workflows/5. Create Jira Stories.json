@@ -1,0 +1,149 @@
+{
+  "name": "5. Create Jira Stories",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "title"
+            },
+            {
+              "name": "description"
+            },
+            {
+              "name": "epic_key"
+            },
+            {
+              "name": "original_estimate"
+            },
+            {
+              "name": "assignee_id"
+            },
+            {
+              "name": "labels"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "start_date"
+            },
+            {
+              "name": "due_date"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        0
+      ],
+      "id": "a66e875b-08f8-42cb-b0ed-ea5dc185484b",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "99e2382e-ea1a-468e-ae2d-a109c460bcd6",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://moneysmart.atlassian.net/rest/api/3/issue",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (function() {                           \n    const fields = {                            \n      project: { key: \"AT\" },                       \n      issuetype: { name: \"Story\" },                   \n      summary: $json.title,                      \n      description: {                           \n        type: \"doc\",                             \n        version: 1,                                \n        content: [{ type: \"paragraph\", content: [{ type: \"text\", text: $json.description }] }]\n      },\n      parent: { key: $json.epic_key },\n      timetracking: { originalEstimate: $json.original_estimate },\n      assignee: { accountId: $json.assignee_id }\n    };\n    if ($json.labels) { try { fields.labels = JSON.parse($json.labels); } catch(e) { fields.labels = [$json.labels]; } } else { fields.labels = [\"not-started\"]; }\n    if ($json.start_date) fields.customfield_10015 = $json.start_date;\n    if ($json.due_date) fields.duedate = $json.due_date;\n    return JSON.stringify({ fields });\n  })() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        256,
+        16
+      ],
+      "id": "3bb20314-7811-43cc-95e9-85c848f1129a",
+      "name": "Create Stories",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "E5oT7SmDiMCaK5ly",
+          "name": "Jian An JIRA"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Create Stories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Stories": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "33a7c324-4d0f-4c0a-b510-a43f77f7e341",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14df616ca124cf32c43693e6b4cc27d6dbf6b0baaa25603423e96330dcf747f5"
+  },
+  "id": "a4Hwn6ZTLGfNO9qp",
+  "tags": []
+}

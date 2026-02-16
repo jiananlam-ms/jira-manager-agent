@@ -1,0 +1,331 @@
+{
+  "name": "7. Update Any Issue Type",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "issue_key"
+            },
+            {
+              "name": "title"
+            },
+            {
+              "name": "description"
+            },
+            {
+              "name": "original_estimate"
+            },
+            {
+              "name": "assignee_id"
+            },
+            {
+              "name": "labels"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "start_date"
+            },
+            {
+              "name": "due_date"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "79c29eef-42c3-4578-8e41-2e687d5257c1",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        336,
+        0
+      ],
+      "id": "60ea5358-c6a0-4ba4-b264-c1c29940d104",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://moneysmart.atlassian.net/rest/api/3/issue/{{ $json.issue_key }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "= {{ (function() { const fields = {}; if ($json.title) fields.summary = $json.title; if ($json.description) fields.description = { type: \"doc\", version: 1, content:  \n  [{ type: \"paragraph\", content: [{ type: \"text\", text: $json.description }] }] }; if ($json.original_estimate) fields.timetracking = { originalEstimate:             \n  $json.original_estimate }; if ($json.assignee_id) fields.assignee = { accountId: $json.assignee_id }; if ($json.labels) { try { fields.labels =                     \n  JSON.parse($json.labels); } catch(e) { fields.labels = [$json.labels]; } } if ($json.status) fields.status = { name: $json.status }; if ($json.start_date)          \n  fields.customfield_10015 = $json.start_date; if ($json.due_date) fields.duedate = $json.due_date; return JSON.stringify({ fields }); })() }}  ",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        608,
+        16
+      ],
+      "id": "09674af8-5d90-462d-b21d-31cc2dafd133",
+      "name": "Updates any issue type",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "E5oT7SmDiMCaK5ly",
+          "name": "Jian An JIRA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5867ebf2-547e-48c9-9242-2a9635e7b9fb",
+              "leftValue": "={{ $('When Executed by Another Workflow').first().json.status }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        16
+      ],
+      "id": "afec5f26-dda8-46ce-a3b1-5a72ccd0274b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "=https://moneysmart.atlassian.net/rest/api/3/issue/{{ $('When Executed by Another Workflow').first().json.issue_key }}/transitions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "d6b58e91-a8d6-42f3-9703-d93ca6ba5fca",
+      "name": "Transition status",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "E5oT7SmDiMCaK5ly",
+          "name": "Jian An JIRA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const target = $('When Executed by Another Workflow').first().json.status;\n  const transitions = $input.first().json.transitions;\n\n  const match = transitions.find(\n    t => t.name.toLowerCase() === target.toLowerCase()\n  );\n\n  if (!match) {\n    const available = transitions.map(t => t.name).join(', ');\n    throw new Error(`Status \"${target}\" not found. Available: ${available}`);\n  }\n\n  return [{\n    json: {\n      issue_key: $('When Executed by Another Workflow').first().json.issue_key,\n      transition_id: match.id\n    }\n  }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        0
+      ],
+      "id": "381e5cbd-556b-444a-b502-83f17fc56c90",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://moneysmart.atlassian.net/rest/api/3/issue/{{ $json.issue_key }}/transitions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=  {\n    \"transition\": {\n      \"id\": \"{{ $json.transition_id }}\"\n    }\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1504,
+        0
+      ],
+      "id": "aa9eb3d9-38e8-41d3-89e3-77178de6109a",
+      "name": "Transition status1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "E5oT7SmDiMCaK5ly",
+          "name": "Jian An JIRA"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "issue_key": "AT-436",
+          "title": "",
+          "description": "",
+          "original_estimate": "",
+          "assignee_id": "",
+          "labels": "",
+          "status": "Building"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Updates any issue type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Updates any issue type": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Transition status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transition status": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Transition status1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transition status1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "0376bffa-cefe-4a57-9acf-ddacbd74ef8c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14df616ca124cf32c43693e6b4cc27d6dbf6b0baaa25603423e96330dcf747f5"
+  },
+  "id": "crfKf8fpJcjmbwKS",
+  "tags": []
+}
