@@ -1,0 +1,136 @@
+{
+  "last_updated": "2026-02-03",
+  "skills": [
+    {
+      "name": "create-skill",
+      "path": ".claude/skills/create-skill/SKILL.md",
+      "description": "Systematic methodology for creating skill definitions from skill-spec artifact specifications"
+    },
+    {
+      "name": "create-skill-spec",
+      "path": ".claude/skills/create-skill-spec/SKILL.md",
+      "description": "Guides conversational requirements gathering for new skills using AskUserQuestion tool"
+    },
+    {
+      "name": "create-agent",
+      "path": ".claude/skills/create-agent/SKILL.md",
+      "description": "Systematic methodology for creating agent definitions from roles-design artifact specifications"
+    },
+    {
+      "name": "create-role-design",
+      "path": ".claude/skills/create-role-design/SKILL.md",
+      "description": "Guides conversational requirements gathering for agent roles using AskUserQuestion tool"
+    },
+    {
+      "name": "structured-reasoning",
+      "path": ".claude/skills/structured-reasoning/SKILL.md",
+      "description": "Defines and enforces the universal reasoning structure for all agents"
+    },
+    {
+      "name": "install-mcp-server",
+      "path": ".claude/skills/install-mcp-server/SKILL.md",
+      "description": "Looks up an MCP server from the catalog, checks prerequisites, installs dependencies, merges config, and verifies connectivity"
+    },
+    {
+      "name": "setup-mcp-cli",
+      "path": ".claude/skills/setup-mcp-cli/SKILL.md",
+      "description": "Detects, installs, and configures mcp-cli binary and its config directory"
+    },
+    {
+      "name": "create-pattern",
+      "path": ".claude/skills/create-pattern/SKILL.md",
+      "description": "Creates or enhances pattern files with proper depth and structure for skills or as standalone reference content"
+    }
+  ],
+  "commands": [
+    {
+      "name": "build",
+      "path": ".claude/commands/build.md",
+      "description": "Guided entry point for building agents or skills. Routes to the right skill pipeline and threads project context through the workflow."
+    },
+    {
+      "name": "how-it-works",
+      "path": ".claude/commands/how-it-works.md",
+      "description": "Display a visual guide explaining how the factory works, what components exist, and how to get started."
+    }
+  ],
+  "patterns": [
+    {
+      "name": "naming-conventions",
+      "path": "patterns/governance-patterns/naming-conventions.md",
+      "description": "Naming standards for agents, skills, and commands"
+    },
+    {
+      "name": "common-role-archetypes",
+      "path": "patterns/role-patterns/common-role-archetypes.md",
+      "description": "Reusable role templates (17 patterns)"
+    },
+    {
+      "name": "skill-type-taxonomy",
+      "path": "patterns/skill-patterns/skill-type-taxonomy.md",
+      "description": "Classification of skill types"
+    },
+    {
+      "name": "skill-procedure-model",
+      "path": "patterns/skill-patterns/skill-procedure-model.md",
+      "description": "Three-layer model (Gather/Reason/Document) for writing skill procedure steps"
+    },
+    {
+      "name": "skill-vs-pattern-decision",
+      "path": "patterns/skill-patterns/skill-vs-pattern-decision.md",
+      "description": "Decision gate for classifying content as skill vs pattern"
+    },
+    {
+      "name": "mcp-server-catalog",
+      "path": "patterns/mcp-patterns/mcp-server-catalog.md",
+      "description": "Catalog of available MCP servers with installation details"
+    },
+    {
+      "name": "mcp-integration-guide",
+      "path": "patterns/mcp-patterns/mcp-integration-guide.md",
+      "description": "Guidance for integrating MCP servers into skills and agents"
+    },
+    {
+      "name": "mcp-cli-guide",
+      "path": "patterns/mcp-patterns/mcp-cli-guide.md",
+      "description": "General mcp-cli reference for installation, commands, and troubleshooting"
+    },
+    {
+      "name": "context7-mcp-cli-guide",
+      "path": "patterns/mcp-patterns/context7-mcp-cli-guide.md",
+      "description": "Context7 MCP server setup and troubleshooting guide"
+    },
+    {
+      "name": "figma-mcp-cli-guide",
+      "path": "patterns/mcp-patterns/figma-mcp-cli-guide.md",
+      "description": "Figma MCP server setup and troubleshooting guide"
+    },
+    {
+      "name": "gmail-mcp-cli-guide",
+      "path": "patterns/mcp-patterns/gmail-mcp-cli-guide.md",
+      "description": "Gmail MCP server setup and troubleshooting guide"
+    },
+    {
+      "name": "playwright-mcp-cli-guide",
+      "path": "patterns/mcp-patterns/playwright-mcp-cli-guide.md",
+      "description": "Playwright MCP server setup and troubleshooting guide"
+    },
+    {
+      "name": "n8n-mcp-cli-guide",
+      "path": "patterns/mcp-patterns/n8n-mcp-cli-guide.md",
+      "description": "n8n MCP server setup and troubleshooting guide"
+    }
+  ],
+  "templates": [
+    {
+      "name": "create-skill-template",
+      "path": "templates/create-skill-template.md",
+      "description": "Fill-in-the-blank structure for skill definitions"
+    },
+    {
+      "name": "create-agent-template",
+      "path": "templates/create-agent-template.md",
+      "description": "Fill-in-the-blank structure for agent definitions"
+    }
+  ]
+}
